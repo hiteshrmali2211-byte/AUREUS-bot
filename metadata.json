@@ -1,0 +1,6 @@
+{
+  "name": "Aureus XAU/USD Quant Algo Studio",
+  "description": "Autonomous Gold (XAUUSD) algorithmic scalping intelligence engine, HFT strategy research, MQL5 EA generation, and Reinforcement Learning quant studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection probe endpoint
+    match /test/{docId} {
+      allow get: if true;
+    }
+
+    // Global hardened primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Strategy entity validation
+    function isValidStrategy(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && isOwner(data.userId) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 64 &&
+             data.timeframe is string && data.timeframe.size() > 0 && data.timeframe.size() <= 32 &&
+             data.mql5Snippet is string && data.mql5Snippet.size() > 0 && data.mql5Snippet.size() <= 30000 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (!('winRate' in data) || (data.winRate is number)) &&
+             (!('profitFactor' in data) || (data.profitFactor is number)) &&
+             (!('sharpeRatio' in data) || (data.sharpeRatio is number)) &&
+             (!('maxDrawdown' in data) || (data.maxDrawdown is number)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // ResearchReport entity validation
+    function isValidResearchReport(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && isOwner(data.userId) &&
+             data.topic is string && data.topic.size() > 0 && data.topic.size() <= 256 &&
+             data.modelUsed is string && data.modelUsed.size() > 0 && data.modelUsed.size() <= 64 &&
+             data.summary is string && data.summary.size() > 0 && data.summary.size() <= 2000 &&
+             data.fullReport is string && data.fullReport.size() > 0 && data.fullReport.size() <= 50000 &&
+             (!('sourcesScanned' in data) || (data.sourcesScanned is number)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // ChatMessage entity validation
+    function isValidChatMessage(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && isOwner(data.userId) &&
+             data.role is string && (data.role == 'user' || data.role == 'model' || data.role == 'assistant') &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 20000 &&
+             (!('model' in data) || (data.model is string && data.model.size() <= 64)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // MT5Account entity validation
+    function isValidMT5Account(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.userId is string && isOwner(data.userId) &&
+             data.accountName is string && data.accountName.size() > 0 && data.accountName.size() <= 100 &&
+             data.accountNumber is string && data.accountNumber.size() > 0 && data.accountNumber.size() <= 64 &&
+             data.brokerServer is string && data.brokerServer.size() > 0 && data.brokerServer.size() <= 128 &&
+             data.accountType is string && data.accountType.size() > 0 && data.accountType.size() <= 32 &&
+             (!('leverage' in data) || (data.leverage is string && data.leverage.size() <= 32)) &&
+             (!('currency' in data) || (data.currency is string && data.currency.size() <= 16)) &&
+             (!('balance' in data) || (data.balance is number)) &&
+             (!('equity' in data) || (data.equity is number)) &&
+             (!('isAlgoActive' in data) || (data.isAlgoActive is bool)) &&
+             (!('spreadGuardPips' in data) || (data.spreadGuardPips is number)) &&
+             (!('maxDailyLossPercent' in data) || (data.maxDailyLossPercent is number)) &&
+             (!('bridgeUrl' in data) || (data.bridgeUrl is string && data.bridgeUrl.size() <= 256)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // STRATEGIES COLLECTION
+    match /strategies/{strategyId} {
+      allow get: if isSignedIn() && isValidId(strategyId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(strategyId) &&
+        strategyId == request.resource.data.id &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.keys().hasAll(['id', 'userId', 'title', 'category', 'timeframe', 'mql5Snippet', 'createdAt', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['id', 'userId', 'title', 'description', 'category', 'timeframe', 'mql5Snippet', 'winRate', 'profitFactor', 'sharpeRatio', 'maxDrawdown', 'createdAt', 'updatedAt']) &&
+        isValidStrategy(request.resource.data);
+
+      allow update: if isSignedIn() && isValidId(strategyId) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'category', 'timeframe', 'mql5Snippet', 'winRate', 'profitFactor', 'sharpeRatio', 'maxDrawdown', 'updatedAt']) &&
+        isValidStrategy(request.resource.data);
+
+      allow delete: if isSignedIn() && isValidId(strategyId) && resource.data.userId == request.auth.uid;
+    }
+
+    // RESEARCH REPORTS COLLECTION
+    match /research_reports/{reportId} {
+      allow get: if isSignedIn() && isValidId(reportId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(reportId) &&
+        reportId == request.resource.data.id &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.keys().hasAll(['id', 'userId', 'topic', 'modelUsed', 'summary', 'fullReport', 'createdAt', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['id', 'userId', 'topic', 'modelUsed', 'summary', 'fullReport', 'sourcesScanned', 'createdAt', 'updatedAt']) &&
+        isValidResearchReport(request.resource.data);
+
+      allow update: if isSignedIn() && isValidId(reportId) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['topic', 'summary', 'fullReport', 'sourcesScanned', 'updatedAt']) &&
+        isValidResearchReport(request.resource.data);
+
+      allow delete: if isSignedIn() && isValidId(reportId) && resource.data.userId == request.auth.uid;
+    }
+
+    // CHAT MESSAGES COLLECTION
+    match /chat_messages/{messageId} {
+      allow get: if isSignedIn() && isValidId(messageId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(messageId) &&
+        messageId == request.resource.data.id &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.keys().hasAll(['id', 'userId', 'role', 'content', 'createdAt', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['id', 'userId', 'role', 'content', 'model', 'createdAt', 'updatedAt']) &&
+        isValidChatMessage(request.resource.data);
+
+      allow delete: if isSignedIn() && isValidId(messageId) && resource.data.userId == request.auth.uid;
+    }
+
+    // MT5 ACCOUNTS COLLECTION
+    match /mt5_accounts/{accountId} {
+      allow get: if isSignedIn() && isValidId(accountId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(accountId) &&
+        accountId == request.resource.data.id &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.keys().hasAll(['id', 'userId', 'accountName', 'accountNumber', 'brokerServer', 'accountType', 'createdAt', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['id', 'userId', 'accountName', 'accountNumber', 'brokerServer', 'accountType', 'leverage', 'currency', 'balance', 'equity', 'isAlgoActive', 'spreadGuardPips', 'maxDailyLossPercent', 'bridgeUrl', 'createdAt', 'updatedAt']) &&
+        isValidMT5Account(request.resource.data);
+
+      allow update: if isSignedIn() && isValidId(accountId) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accountName', 'accountNumber', 'brokerServer', 'accountType', 'leverage', 'currency', 'balance', 'equity', 'isAlgoActive', 'spreadGuardPips', 'maxDailyLossPercent', 'bridgeUrl', 'updatedAt']) &&
+        isValidMT5Account(request.resource.data);
+
+      allow delete: if isSignedIn() && isValidId(accountId) && resource.data.userId == request.auth.uid;
+    }
+  }
+}

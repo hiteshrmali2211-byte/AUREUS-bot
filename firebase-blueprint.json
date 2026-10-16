@@ -1,0 +1,277 @@
+{
+  "entities": {
+    "Strategy": {
+      "title": "Strategy",
+      "description": "Trading algorithm configuration and MQL5 code specification for XAUUSD scalping",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique strategy identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID matching auth.uid",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Strategy descriptive title",
+          "maxLength": 150
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed summary of algo mechanics and edge",
+          "maxLength": 1000
+        },
+        "category": {
+          "type": "string",
+          "description": "Quant scalping classification category",
+          "maxLength": 64
+        },
+        "timeframe": {
+          "type": "string",
+          "description": "Primary chart timeframe (e.g. M1, M5, Tick)",
+          "maxLength": 32
+        },
+        "mql5Snippet": {
+          "type": "string",
+          "description": "Production MT5 EA source code",
+          "maxLength": 30000
+        },
+        "winRate": {
+          "type": "number",
+          "description": "Expected or backtested win rate percentage"
+        },
+        "profitFactor": {
+          "type": "number",
+          "description": "Profit factor metric"
+        },
+        "sharpeRatio": {
+          "type": "number",
+          "description": "Annualized Sharpe ratio"
+        },
+        "maxDrawdown": {
+          "type": "number",
+          "description": "Maximum drawdown percentage"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated"
+        }
+      },
+      "required": ["id", "userId", "title", "category", "timeframe", "mql5Snippet", "createdAt", "updatedAt"]
+    },
+    "ResearchReport": {
+      "title": "ResearchReport",
+      "description": "Autonomous quant research synthesis report on XAUUSD scalping and HFT",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique report identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID matching auth.uid",
+          "maxLength": 128
+        },
+        "topic": {
+          "type": "string",
+          "description": "Target research topic queried",
+          "maxLength": 256
+        },
+        "modelUsed": {
+          "type": "string",
+          "description": "Gemini model used for synthesis",
+          "maxLength": 64
+        },
+        "summary": {
+          "type": "string",
+          "description": "Executive summary of findings",
+          "maxLength": 2000
+        },
+        "fullReport": {
+          "type": "string",
+          "description": "Comprehensive report markdown body",
+          "maxLength": 50000
+        },
+        "sourcesScanned": {
+          "type": "number",
+          "description": "Estimated corpus knowledge scale analyzed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": ["id", "userId", "topic", "modelUsed", "summary", "fullReport", "createdAt", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Quant bot chat history log entry",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique chat message identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "User identifier matching auth.uid",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of message sender (user or model)",
+          "maxLength": 16
+        },
+        "content": {
+          "type": "string",
+          "description": "Content of the message",
+          "maxLength": 20000
+        },
+        "model": {
+          "type": "string",
+          "description": "Model used for generating this response",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": ["id", "userId", "role", "content", "createdAt", "updatedAt"]
+    },
+    "MT5Account": {
+      "title": "MT5Account",
+      "description": "Connected MetaTrader 5 trading account with broker server, credentials metadata, and risk limits",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique account identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID matching auth.uid",
+          "maxLength": 128
+        },
+        "accountName": {
+          "type": "string",
+          "description": "Friendly label for the MT5 account",
+          "maxLength": 100
+        },
+        "accountNumber": {
+          "type": "string",
+          "description": "MT5 login / account number",
+          "maxLength": 64
+        },
+        "brokerServer": {
+          "type": "string",
+          "description": "Broker server hostname or title",
+          "maxLength": 128
+        },
+        "accountType": {
+          "type": "string",
+          "description": "Account type: Demo, Live, or Prop Firm",
+          "maxLength": 32
+        },
+        "leverage": {
+          "type": "string",
+          "description": "Account leverage ratio (e.g. 1:100, 1:500)",
+          "maxLength": 32
+        },
+        "currency": {
+          "type": "string",
+          "description": "Account base currency",
+          "maxLength": 16
+        },
+        "balance": {
+          "type": "number",
+          "description": "Reported account balance"
+        },
+        "equity": {
+          "type": "number",
+          "description": "Current equity"
+        },
+        "isAlgoActive": {
+          "type": "boolean",
+          "description": "Whether automated algo execution is enabled"
+        },
+        "spreadGuardPips": {
+          "type": "number",
+          "description": "Max spread threshold in pips to allow scalping"
+        },
+        "maxDailyLossPercent": {
+          "type": "number",
+          "description": "Daily circuit breaker percentage"
+        },
+        "bridgeUrl": {
+          "type": "string",
+          "description": "VPS or WebTerminal bridge webhook endpoint",
+          "maxLength": 256
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": ["id", "userId", "accountName", "accountNumber", "brokerServer", "accountType", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/strategies/{strategyId}": {
+      "schema": {
+        "$ref": "#/entities/Strategy"
+      },
+      "description": "Stores user-created and saved algorithmic trading strategies"
+    },
+    "/research_reports/{reportId}": {
+      "schema": {
+        "$ref": "#/entities/ResearchReport"
+      },
+      "description": "Stores generated comprehensive algorithmic research reports"
+    },
+    "/chat_messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/ChatMessage"
+      },
+      "description": "Stores multi-turn quant assistant chat session messages"
+    },
+    "/mt5_accounts/{accountId}": {
+      "schema": {
+        "$ref": "#/entities/MT5Account"
+      },
+      "description": "Stores user-connected MetaTrader 5 trading accounts and risk settings"
+    }
+  }
+}
